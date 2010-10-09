@@ -69,7 +69,11 @@ module WebAppTheme
     
     def columns
       excluded_column_names = %w[id created_at updated_at]
-      Kernel.const_get(@model_name).columns.reject{|c| excluded_column_names.include?(c.name) }.collect{|c| Rails::Generators::GeneratedAttribute.new(c.name, c.type)}
+      if Kernel.const_get(@model_name).respond_to? :field
+        Kernel.const_get(@model_name).fields.reject{|name,attr| excluded_column_names.include?(name) }.collect{|name,attr| Rails::Generator::GeneratedAttribute.new(name, attr.type.to_s.underscore.to_sym)}
+      else
+        Kernel.const_get(@model_name).columns.reject{|c| excluded_column_names.include?(c.name) }.collect{|c| Rails::Generators::GeneratedAttribute.new(c.name, c.type)}
+      end
     end
     
     def extract_modules(name)
